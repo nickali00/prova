@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             let id = this.getAttribute("data-numero");
 
-            fetch("get_casella.php?id=" + id)
+            fetch("https://nickgame.altervista.org/giochigrafici/get_casella.php?id=" + id)
                 .then(response => response.json())
                 .then(data => {
                     if (data.error) {

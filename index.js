@@ -15,3 +15,4 @@ connection.connect((err) => {
     }
     console.log('Connesso al database come ID ' + connection.threadId);
 });
+

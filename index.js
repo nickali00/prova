@@ -1,4 +1,4 @@
-const mysql = require('mysql2'); // Usa la libreria mysql2 per MySQL
+/*const mysql = require('mysql2'); // Usa la libreria mysql2 per MySQL
 
 const connection = mysql.createConnection({
     host: process.env.DB_HOST,  // L'host del database
@@ -15,4 +15,4 @@ connection.connect((err) => {
     }
     console.log('Connesso al database come ID ' + connection.threadId);
 });
-
+*/

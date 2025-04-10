@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly</title>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniApp Telegram</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+	</head>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f8f8;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            width: 450px;
+            height: 450px;
+            background: #fff;
+            border: 4px solid black;
+            position: relative;
+        }
+        .player {
+            width: 15px;
+            height: 15px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            transition: transform 0.5s ease;
+            z-index: 1; /* Assicura che il pedone sia sopra il tabellone */
+        }
+
+        .cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid black;
+            font-size: 8px;
+            text-align: center;
+            flex-direction: column;
+            padding: 5px;
+            font-weight: bold;
+            position: relative;
+        }
+        .cell::after {
+            content: attr(data-numero);
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 6px;
+            color: transparent;
+        }
+        .corner { background: lightgray; }
+        .brown { background: #9C5B33; color: white; }
+        .lightblue { background: #AEEEEE; }
+        .pink { background: #D36D9E; color: white; }
+        .orange { background: #F7941D; }
+        .red { background: #EC3223; color: white; }
+        .yellow { background: #F7D708; }
+        .green { background: #1F9240; color: white; }
+        .blue { background: #0072BB; color: white; }
+        .railroad { background: gray; color: white; }
+        .utility { background: yellow; }
+        .chance { background: orange; }
+        .tax { background: red; color: white; }
+        .center {
+            grid-column: 2 / 8;
+            grid-row: 2 / 8;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .container {
+        display: flex;
+        flex-direction: column; /* Metti i div uno sotto l'altro */
+        align-items: center; /* Centra i div */
+        justify-content: center;
+        gap: 20px; /* Spazio tra i div */
+        height: 100vh;
+    }
+    .box {
+        width: 80%;
+        padding: 20px;
+        background-color: lightblue;
+        border: 2px solid blue;
+        text-align: center;
+        font-size: 20px;
+    }
+    .info {
+    display: flex; /* Metti gli elementi in riga */
+    gap: 20px; /* Spazio tra gli elementi */
+    background-color: lightgray;
+    font-size: 6px;
+    padding: 2px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+	}
+    .popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    background-color: white;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 1000;
+}
+
+.popup-content {
+    text-align: center;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+}
+    </style>
+</head>
+<body>
+<div id="popup" class="popup">
+    <h2 id="popup-title"></h2>
+    <p id="popup-info"></p>
+    <p id="popup-costo"></p>
+    <p id="popup-upgrades"></p>
+    <button onclick="document.getElementById('popup').style.display='none'">Chiudi</button>
+</div>
+
+    <div class="board" id="board">
+        <!-- Riga superiore -->
+        <div class="cell corner" data-numero="1">Via</div>
+        <div class="cell brown" data-numero="2">Vicolo Stretto</div>
+        <div class="cell chance" data-numero="3">Imprevisti</div>
+        <div class="cell brown" data-numero="4">Vicolo Corto</div>
+        <div class="cell railroad" data-numero="5">Stazione Sud</div>
+        <div class="cell lightblue" data-numero="6">Bastioni Gran Sasso</div>
+        <div class="cell lightblue" data-numero="7">Viale Monterosa</div>
+        <div class="cell corner" data-numero="8">Prigione</div>
+
+        <!-- Colonna destra -->
+        <div class="cell pink" data-numero="9" style="grid-column: 8; grid-row: 2;">Via Accademia</div>
+        <div class="cell utility" data-numero="10" style="grid-column: 8; grid-row: 3;">Società Elettrica</div>
+        <div class="cell pink" data-numero="11" style="grid-column: 8; grid-row: 4;">Corso Ateneo</div>
+        <div class="cell railroad" data-numero="12" style="grid-column: 8; grid-row: 5;">Stazione Ovest</div>
+        <div class="cell orange" data-numero="13" style="grid-column: 8; grid-row: 6;">Piazza Dante</div>
+        <div class="cell orange" data-numero="14" style="grid-column: 8; grid-row: 7;">Via Marco Polo</div>
+
+        <!-- Casella centrale -->
+        <div class="cell center">
+         <div class="info" id="info">
+            <p>nome: <span id="nome">Caricamento...</span></p>
+            <p>cognome: <span id="cognome">Caricamento...</span></p>
+            <p>username: <span id="username">Caricamento...</span></p>
+  		</div>
+		
+        MONOPOLY
+          <div class="controls">
+        	
+			  <p>Saldo giocatore: <span id="saldo"><?php echo $chatID ; ?></span> €</p>
+              <button onclick="lanciaDadi()">Lancia i dadi</button>
+              <p>Risultato dadi: <span id="dadi"></span></p>
+          </div>
+          </div>
+          <div id="player" class="player"></div>
+        <!-- Colonna sinistra -->
+        <div class="cell red" data-numero="23" style="grid-column: 1; grid-row: 7;">Corso Impero</div>
+        <div class="cell red" data-numero="24" style="grid-column: 1; grid-row: 6;">Viale Costantino</div>
+        <div class="cell railroad" data-numero="25" style="grid-column: 1; grid-row: 5;">Stazione Nord</div>
+        <div class="cell yellow" data-numero="26" style="grid-column: 1; grid-row: 4;">Viale Dei Giardini</div>
+        <div class="cell yellow" data-numero="27" style="grid-column: 1; grid-row: 3;">Parco Della Vittoria</div>
+        <div class="cell tax" data-numero="28" style="grid-column: 1; grid-row: 2;">Tassa di Lusso</div>
+
+        <!-- Riga inferiore -->
+        <div class="cell corner" data-numero="22">Vai in Prigione</div>
+        <div class="cell green" data-numero="21">Viale Monte Napoleone</div>
+        <div class="cell utility" data-numero="20">Società Acqua Potabile</div>
+        <div class="cell green" data-numero="19">Viale Alessandro Volta</div>
+        <div class="cell railroad" data-numero="18">Stazione Est</div>
+        <div class="cell blue" data-numero="17">Borgo Largo</div>
+        <div class="cell blue" data-numero="16">Via Roma</div>
+        <div class="cell corner" data-numero="15">Parcheggio</div>
+    </div>
+ <script>
+    let posizione = 0;
+    let saldo = 1500;
+    const player = document.getElementById("player");
+
+    function posizionaGiocatore() {
+        let cellaAttuale = document.querySelector(`.cell[data-numero='${posizione + 1}']`);
+        if (cellaAttuale) {
+            let rect = cellaAttuale.getBoundingClientRect();
+            let boardRect = document.getElementById("board").getBoundingClientRect();
+            let offsetX = rect.left - boardRect.left + rect.width / 2 - player.offsetWidth / 2;
+            let offsetY = rect.top - boardRect.top + rect.height / 2 - player.offsetHeight / 2;
+            player.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        }
+    }
+
+    function lanciaDadi() {
+        let dado1 = Math.floor(Math.random() * 4) + 1;
+        let dado2 = Math.floor(Math.random() * 4) + 1;
+        let risultato = dado1 + dado2;
+        document.getElementById("dadi").textContent = `${dado1} + ${dado2} = ${risultato}`;
+        muoviGiocatore(risultato);
+    }
+
+    function muoviGiocatore(passi) {
+        posizione = (posizione + passi) % 28;
+        posizionaGiocatore();
+    }
+
+    window.onload = posizionaGiocatore;
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+    window.onload = function () {
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+
+    let initData = tg.initDataUnsafe;
+    console.log("Dati ricevuti da Telegram:", initData);
+
+    // ✅ Imposta valori di default se mancanti
+    let chatID = initData.user?.id || "Sconosciuto";
+    let nome = initData.user?.first_name || "Sconosciuto";
+    let cognome = initData.user?.last_name || "Sconosciuto";
+    let username = initData.user?.username || "Nessun username";
+
+    // ✅ Aggiorna solo gli elementi presenti nella pagina
+    if (document.getElementById("id")) document.getElementById("id").textContent = chatID;
+    if (document.getElementById("nome")) document.getElementById("nome").textContent = nome;
+    if (document.getElementById("cognome")) document.getElementById("cognome").textContent = cognome;
+    if (document.getElementById("username")) document.getElementById("username").textContent = username;
+
+    // ✅ Usa FormData per evitare problemi di encoding nei dati
+    let formData = new FormData();
+    formData.append("chat_id", chatID);
+    formData.append("nome", nome);
+    formData.append("cognome", cognome);
+    formData.append("username", username);
+
+};
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".cell").forEach(cell => {
+        cell.addEventListener("click", function () {
+            // Controlla se la cella cliccata ha la classe "center"
+            if (this.classList.contains("center")) {
+                return; // Esce dalla funzione senza fare nulla
+            }
+            let id = this.getAttribute("data-numero");
+
+            fetch("get_casella.php?id=" + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert("Errore: " + data.error);
+                        return;
+                    }
+
+                    document.getElementById("popup-title").textContent = data.nome;
+                    document.getElementById("popup-info").textContent = "Tipo: " + data.tipo;
+
+                    let costoText = data.costo_acquisto 
+                        ? `Costo di acquisto: ${data.costo_acquisto}€`
+                        : "Non acquistabile";
+                    document.getElementById("popup-costo").textContent = costoText;
+
+                    let upgradesText = data.upgrades && data.upgrades.length > 0
+                        ? data.upgrades.map(u => 
+                            `Livello ${u.livello}: Costo upgrade ${u.costo_upgrade}€ - Affitto ${u.costo_affitto}€`
+                          ).join("<br>")
+                        : "Nessun upgrade disponibile";
+
+                    document.getElementById("popup-upgrades").innerHTML = upgradesText;
+                    document.getElementById("popup").style.display = "block";
+                })
+                .catch(error => console.error("Errore nel recupero dati:", error));
+        });
+    });
+});
+
+function chiudiPopup() {
+    document.getElementById("popup").style.display = "none";
+}
+</script>
+
+</body>
+</html>

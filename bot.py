@@ -27,7 +27,7 @@ def main():
     # Aggiungi handler per il comando "/start"
     application.add_handler(CommandHandler("start", start))
 
-    # Avvia il bot
+    # Avvia il bot con il polling
     application.run_polling()
 
 if __name__ == '__main__':
